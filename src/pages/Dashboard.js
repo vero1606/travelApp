@@ -39,6 +39,15 @@ const tiles = [
 function Dashboard() {
   const navigate = useNavigate();
 
+  const handleTileClick = (tile) => {
+    if (tile.id === 'profile') {
+      const token = localStorage.getItem('token');
+      navigate(token ? '/profile' : '/login');
+    } else {
+      navigate(tile.path);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f8faff', fontFamily: "'Segoe UI', sans-serif" }}>
       {/* Legend */}
@@ -66,7 +75,7 @@ function Dashboard() {
           {tiles.map(tile => (
             <div
               key={tile.id}
-              onClick={() => navigate(tile.path)}
+              onClick={() => handleTileClick(tile)}
               style={{
                 background: '#fff', borderRadius: 16,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.08)',

@@ -20,7 +20,7 @@ function Login() {
       setError('');
       const { data } = await axios.post('http://localhost:8000/api/auth/login', form);
       localStorage.setItem('token', data.token);
-      navigate('/');
+      navigate('/profile');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -43,42 +43,23 @@ function Login() {
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🌏</div>
-          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#1e3a5f' }}>
-            TravelApp
-          </h1>
-          <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.9rem' }}>
-            Sign in to your account
-          </p>
+          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#1e3a5f' }}>TravelApp</h1>
+          <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.9rem' }}>Sign in to your account</p>
         </div>
 
         {/* Error */}
         {error && (
-          <div style={{
-            background: '#fee', border: '1px solid #fcc',
-            borderRadius: 8, padding: '0.7rem 1rem',
-            color: '#c00', fontSize: '0.85rem', marginBottom: '1.2rem',
-          }}>
+          <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '0.7rem 1rem', color: '#c00', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
             ⚠️ {error}
           </div>
         )}
 
         {/* Email */}
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>
-            Email
-          </label>
-          <input
-            type="email"
-            placeholder="you@email.com"
-            value={form.email}
-            onChange={set('email')}
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>Email</label>
+          <input type="email" placeholder="you@email.com" value={form.email} onChange={set('email')}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            style={{
-              width: '100%', padding: '0.75rem 1rem', borderRadius: 10,
-              border: '1.5px solid #e0e0e0', fontSize: '0.95rem',
-              outline: 'none', boxSizing: 'border-box',
-              transition: 'border-color 0.2s',
-            }}
+            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' }}
             onFocus={e => e.target.style.borderColor = '#3b5bdb'}
             onBlur={e => e.target.style.borderColor = '#e0e0e0'}
           />
@@ -86,50 +67,36 @@ function Login() {
 
         {/* Password */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>
-            Password
-          </label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={set('password')}
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>Password</label>
+          <input type="password" placeholder="••••••••" value={form.password} onChange={set('password')}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            style={{
-              width: '100%', padding: '0.75rem 1rem', borderRadius: 10,
-              border: '1.5px solid #e0e0e0', fontSize: '0.95rem',
-              outline: 'none', boxSizing: 'border-box',
-              transition: 'border-color 0.2s',
-            }}
+            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' }}
             onFocus={e => e.target.style.borderColor = '#3b5bdb'}
             onBlur={e => e.target.style.borderColor = '#e0e0e0'}
           />
         </div>
 
         {/* Login button */}
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          style={{
-            width: '100%', padding: '0.85rem',
-            background: loading ? '#94a3b8' : 'linear-gradient(135deg, #1e3a5f, #3b5bdb)',
-            color: '#fff', border: 'none', borderRadius: 10,
-            fontSize: '1rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'opacity 0.2s',
-          }}
-        >
+        <button onClick={handleLogin} disabled={loading} style={{
+          width: '100%', padding: '0.85rem',
+          background: loading ? '#94a3b8' : 'linear-gradient(135deg, #1e3a5f, #3b5bdb)',
+          color: '#fff', border: 'none', borderRadius: 10,
+          fontSize: '1rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+        }}>
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
         {/* Register link */}
         <p style={{ textAlign: 'center', marginTop: '1.2rem', fontSize: '0.88rem', color: '#888' }}>
           Don't have an account?{' '}
-          <span
-            onClick={() => navigate('/register')}
-            style={{ color: '#3b5bdb', fontWeight: 600, cursor: 'pointer' }}
-          >
+          <span onClick={() => navigate('/register')} style={{ color: '#3b5bdb', fontWeight: 600, cursor: 'pointer' }}>
             Sign up
           </span>
+        </p>
+
+        {/* Back to dashboard */}
+        <p onClick={() => navigate('/')} style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.85rem', color: '#aaa', cursor: 'pointer' }}>
+          ← Back to Dashboard
         </p>
       </div>
     </div>
