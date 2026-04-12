@@ -302,8 +302,24 @@ function Profile() {
         {/* ── Messages Tab ── */}
         {activeTab === 'messages' && <MessagesTab />}
 
-        {/* ── Bookings / List Property Tab ── */}
-        {activeTab !== 'messages' && (
+        {/* ── List Property Tab ── */}
+        {activeTab === 'list property' && (
+        <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#aaa' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏠</div>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#555', fontWeight: 700 }}>No properties listed yet</h3>
+            <p style={{ margin: '0 0 1.5rem', fontSize: '0.9rem' }}>When you list a property it will appear here.</p>
+            <button style={{
+            background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)',
+            color: '#fff', border: 'none', padding: '12px 28px',
+            borderRadius: 12, cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem',
+            }}>
+            List a Property
+            </button>
+        </div>
+        )}
+
+        {/* ── Bookings Tab ── */}
+        {activeTab === 'bookings' && (
           <>
             {/* User info card */}
             <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.2rem' }}>
