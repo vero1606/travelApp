@@ -18,8 +18,14 @@ function Register() {
     try {
       setLoading(true);
       setError('');
-      const { data } = await axios.post('http://localhost:8000/api/auth/register', form);
+      const { data } = await axios.post('http://localhost:3001/api/auth/register', form);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('userData', JSON.stringify({
+        name: data.user.name,
+        email: data.user.email,
+        location: '',
+        memberSince: new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+      }));
       navigate('/profile');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
@@ -40,31 +46,27 @@ function Register() {
         padding: '2.5rem 2rem', width: '100%', maxWidth: 400,
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
       }}>
-        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🌏</div>
           <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#1e3a5f' }}>TravelApp</h1>
           <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.9rem' }}>Create your account</p>
         </div>
 
-        {/* Error */}
         {error && (
           <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '0.7rem 1rem', color: '#c00', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
             ⚠️ {error}
           </div>
         )}
 
-        {/* Name */}
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>Full Name</label>
-          <input type="text" placeholder="Veronica Andrade" value={form.name} onChange={set('name')}
+          <input type="text" placeholder="Your full name" value={form.name} onChange={set('name')}
             style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 10, border: '1.5px solid #e0e0e0', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' }}
             onFocus={e => e.target.style.borderColor = '#3b5bdb'}
             onBlur={e => e.target.style.borderColor = '#e0e0e0'}
           />
         </div>
 
-        {/* Email */}
         <div style={{ marginBottom: '1rem' }}>
           <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>Email</label>
           <input type="email" placeholder="you@email.com" value={form.email} onChange={set('email')}
@@ -74,7 +76,6 @@ function Register() {
           />
         </div>
 
-        {/* Password */}
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#444', marginBottom: 6 }}>Password</label>
           <input type="password" placeholder="••••••••" value={form.password} onChange={set('password')}
@@ -85,7 +86,6 @@ function Register() {
           />
         </div>
 
-        {/* Register button */}
         <button onClick={handleRegister} disabled={loading} style={{
           width: '100%', padding: '0.85rem',
           background: loading ? '#94a3b8' : 'linear-gradient(135deg, #1e3a5f, #3b5bdb)',
@@ -95,7 +95,6 @@ function Register() {
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
 
-        {/* Login link */}
         <p style={{ textAlign: 'center', marginTop: '1.2rem', fontSize: '0.88rem', color: '#888' }}>
           Already have an account?{' '}
           <span onClick={() => navigate('/login')} style={{ color: '#3b5bdb', fontWeight: 600, cursor: 'pointer' }}>
@@ -103,7 +102,6 @@ function Register() {
           </span>
         </p>
 
-        {/* Back to dashboard */}
         <p onClick={() => navigate('/')} style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.85rem', color: '#aaa', cursor: 'pointer' }}>
           ← Back to Dashboard
         </p>

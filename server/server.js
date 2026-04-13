@@ -5,15 +5,24 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors({ origin: '*' }));
-app.use(express.json());
+app.use(express.json());        // ← must be before routes
 
-mongoose.connect(process.env.MONGO_URI) //connection to the MongoDB
-  .then(() => console.log('MongoDB connected')) //MongoDB holds countries information
-  .catch(err => console.log(err));
+app.get('/', (req, res) => res.send('API running'));
 
-app.get('/', (req, res) => res.send('API running'));//a message to indicate server is running
-
-const destinationRoutes = require('../routes/destinations');//connects the server and frontend to display info
+const destinationRoutes = require('../routes/destinations');
 app.use('/api/destinations', destinationRoutes);
-const PORT = 8000; //server is running on PORT 8000
+
+const authRoutes = require('../routes/auth');
+app.use('/api/auth', authRoutes);
+
+app.use((err, req, res, next) => {
+  console.error('ERROR STACK:', err.stack);
+  res.status(500).json({ message: err.message });
+});
+
+const PORT = 3001;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));

@@ -233,7 +233,7 @@ function Home() {
     try {
       setLoading(true);
       const params = query ? `?search=${encodeURIComponent(query)}` : '';
-      const { data } = await axios.get(`http://localhost:8000/api/destinations${params}`);
+      const { data } = await axios.get(`http://localhost:3001/api/destinations${params}`);
       setDestinations(data);
     } catch (err) {
       setError('Failed to load destinations. Is the server running?');
