@@ -186,7 +186,7 @@ function PropertyModal({ property, onClose, onBook }) {
             </div>
             <div style={{ textAlign: 'right' }}>
               <p style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: '#1e3a5f' }}>{property.price}</p>
-              <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#f59e0b' }}>⭐ {property.rating} <span style={{ color: '#aaa' }}>({property.reviews} reviews)</span></p>
+              <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#f59e0b' }}>{property.rating} <span style={{ color: '#aaa' }}>({property.reviews} reviews)</span></p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', margin: '1rem 0', padding: '0.8rem', background: '#f8faff', borderRadius: 10 }}>

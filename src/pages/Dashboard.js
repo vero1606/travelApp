@@ -58,7 +58,7 @@ function Dashboard() {
         color: '#fff',
       }}>
         <h1 style={{ fontSize: '2.4rem', margin: 0, fontWeight: 800, letterSpacing: '-0.5px' }}>
-          🌏 Welcome to TravelApp
+          Welcome to TravelApp
         </h1>
         <p style={{ margin: '0.6rem 0 0', opacity: 0.8, fontSize: '1.05rem' }}>
           Your all-in-one travel companion

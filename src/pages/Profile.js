@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// ── Messages Tab ──────────────────────────────────────────────────────────────
+// ── Messages Tab 
 const conversations = [
   { id: 1, name: 'Maria S.', property: 'Cosy Studio in Lisbon', lastMessage: 'Hi! Just to confirm your check-in time is 3pm.', time: '10:32 AM', unread: 2, avatar: 'M', color: '#fde8d8' },
   { id: 2, name: 'Wayan K.', property: 'Beachfront Villa in Bali', lastMessage: '', time: '', unread: 0, avatar: 'W', color: '#d0eaf8' },
@@ -80,7 +80,7 @@ function MessagesTab() {
   );
 }
 
-// ── Shared Components ─────────────────────────────────────────────────────────
+// ── Shared Components 
 function Overlay({ onClose, children }) {
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
@@ -137,7 +137,7 @@ function EditInfoModal({ user, onClose, onSave }) {
   };
   return (
     <Overlay onClose={onClose}>
-      <ModalHeader title="✏️ Edit Profile" onClose={onClose} />
+      <ModalHeader title="Edit Profile" onClose={onClose} />
       <div style={{ padding: '1.5rem' }}>
         {error && <ErrorBox msg={error} />}
         {[
@@ -162,13 +162,13 @@ function EditPrefsModal({ prefs, onClose, onSave }) {
   };
   return (
     <Overlay onClose={onClose}>
-      <ModalHeader title="✈️ Travel Preferences" onClose={onClose} />
+      <ModalHeader title="Travel Preferences" onClose={onClose} />
       <div style={{ padding: '1.5rem' }}>
         {[
-          { label: '💰 Budget', key: 'budget' },
-          { label: '🧭 Travel Style', key: 'style' },
-          { label: '☀️ Preferred Climate', key: 'climate' },
-          { label: '📆 Trip Length', key: 'length' },
+          { label: 'Budget', key: 'budget' },
+          { label: 'Travel Style', key: 'style' },
+          { label: ' Preferred Climate', key: 'climate' },
+          { label: 'Trip Length', key: 'length' },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#444', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{f.label}</label>
@@ -186,7 +186,7 @@ function EditPrefsModal({ prefs, onClose, onSave }) {
   );
 }
 
-// ── Main Profile Page ─────────────────────────────────────────────────────────
+// ── Main Profile Page 
 function Profile() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bookings');
@@ -194,13 +194,17 @@ function Profile() {
   const [showEditPrefs, setShowEditPrefs] = useState(false);
   const [showListProperty, setShowListProperty] = useState(false);
   const [listingSubmitted, setListingSubmitted] = useState(false);
-  const [listings, setListings] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [listingForm, setListingForm] = useState({
     title: '', location: '', type: 'Apartment',
     price: '', bedrooms: '1', guests: '1', description: '',
     image: null, imagePreview: null,
+  });
+
+  // Load listings from localStorage so they persist across sessions
+  const [listings, setListings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('listings') || '[]'); } catch { return []; }
   });
 
   const [user, setUser] = useState(() => {
@@ -247,6 +251,28 @@ function Profile() {
     localStorage.setItem('userData', JSON.stringify(newUser));
   };
 
+  const addListing = () => {
+    if (listingForm.title && listingForm.location && listingForm.price) {
+      const newListings = [...listings, { ...listingForm, id: Date.now() }];
+      setListings(newListings);
+      localStorage.setItem('listings', JSON.stringify(newListings));
+      setListingSubmitted(true);
+    }
+  };
+
+  const saveListing = (id) => {
+    const updated = listings.map(x => x.id === id ? { ...x, ...editForm } : x);
+    setListings(updated);
+    localStorage.setItem('listings', JSON.stringify(updated));
+    setEditingId(null);
+  };
+
+  const deleteListing = (id) => {
+    const remaining = listings.filter(x => x.id !== id);
+    setListings(remaining);
+    localStorage.setItem('listings', JSON.stringify(remaining));
+  };
+
   const resetListing = () => {
     setShowListProperty(false);
     setListingSubmitted(false);
@@ -264,14 +290,14 @@ function Profile() {
         <div onClick={resetListing} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 480, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto', animation: 'fadeIn 0.18s ease' }}>
             <div style={{ background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>🏠 List a Property</h3>
+              <h3 style={{ margin: 0, color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>List a Property</h3>
               <button onClick={resetListing} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
             </div>
             {listingSubmitted ? (
               <div style={{ padding: '2.5rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🎉</div>
+                <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}></div>
                 <h3 style={{ margin: '0 0 0.5rem', color: '#1e3a5f', fontSize: '1.3rem', fontWeight: 800 }}>Property Listed!</h3>
-                <p style={{ color: '#666', fontSize: '0.92rem', marginBottom: '1.5rem' }}><strong>{listingForm.title}</strong> in {listingForm.location} has been successfully listed.</p>
+                <p style={{ color: '#666', fontSize: '0.92rem', marginBottom: '1.5rem' }}><strong>{listingForm.title}</strong> in {listingForm.location} has been successfully listed and saved.</p>
                 <button onClick={resetListing} style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', border: 'none', borderRadius: 12, fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Done</button>
               </div>
             ) : (
@@ -316,8 +342,7 @@ function Profile() {
                   {listingForm.imagePreview && <img src={listingForm.imagePreview} alt="preview" style={{ width: '100%', height: 160, objectFit: 'cover', borderRadius: 10, marginBottom: 8, display: 'block' }} />}
                   <input type="file" accept="image/*" onChange={e => { const file = e.target.files[0]; if (file) setListingForm({ ...listingForm, image: file, imagePreview: URL.createObjectURL(file) }); }} style={{ width: '100%', fontSize: '0.88rem', color: '#555', padding: '0.4rem 0' }} />
                 </div>
-                <button onClick={() => { if (listingForm.title && listingForm.location && listingForm.price) { setListings([...listings, { ...listingForm, id: Date.now() }]); setListingSubmitted(true); } }}
-                  style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', border: 'none', borderRadius: 12, fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>
+                <button onClick={addListing} style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', border: 'none', borderRadius: 12, fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>
                   Submit Listing
                 </button>
               </div>
@@ -334,7 +359,7 @@ function Profile() {
             ← Back
           </button>
           <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.3)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: '6px 16px', borderRadius: 20, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
-            🚪 Log Out
+            Log Out
           </button>
         </div>
 
@@ -359,18 +384,18 @@ function Profile() {
 
         {activeTab === 'messages' && <MessagesTab />}
 
-        {/* List Property Tab */}
+        {/* ── List Property Tab ── */}
         {activeTab === 'list property' && (
           <div>
             {listings.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#aaa' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏠</div>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}></div>
                 <h3 style={{ margin: '0 0 0.5rem', color: '#555', fontWeight: 700 }}>No properties listed yet</h3>
                 <p style={{ margin: '0 0 1.5rem', fontSize: '0.9rem' }}>When you list a property it will appear here.</p>
               </div>
             ) : (
               <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>🏠 Your Listings</h4>
+                <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>Your Listings</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {listings.map(l => (
                     <div key={l.id} style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
@@ -397,24 +422,23 @@ function Profile() {
                           </div>
                           <div style={{ display: 'flex', gap: '0.7rem' }}>
                             <button onClick={() => setEditingId(null)} style={{ flex: 1, padding: '0.6rem', borderRadius: 8, border: '1.5px solid #e0e0e0', background: '#fff', color: '#555', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>Cancel</button>
-                            <button onClick={() => { setListings(listings.map(x => x.id === l.id ? { ...x, ...editForm } : x)); setEditingId(null); }}
-                              style={{ flex: 1, padding: '0.6rem', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem' }}>Save</button>
+                            <button onClick={() => saveListing(l.id)} style={{ flex: 1, padding: '0.6rem', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem' }}>Save</button>
                           </div>
                         </div>
                       ) : (
                         <div style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>{l.title}</h3>
-                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}>📍 {l.location}</p>
-                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}>💰 {l.price} · 🏷️ {l.type} · 🛏️ {l.bedrooms} bed · 👥 {l.guests} guests</p>
+                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}> {l.location}</p>
+                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}> {l.price} · {l.type} · {l.bedrooms} bed · {l.guests} guests</p>
                             {l.description && <p style={{ margin: '6px 0 0', color: '#666', fontSize: '0.82rem', lineHeight: 1.5 }}>{l.description}</p>}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', flexShrink: 0, marginLeft: '1rem' }}>
                             <span style={{ background: '#dcfce7', color: '#16a34a', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>Active</span>
                             <button onClick={() => { setEditingId(l.id); setEditForm({ title: l.title, location: l.location, price: l.price, description: l.description }); }}
-                              style={{ background: '#f0f4ff', color: '#3b5bdb', border: 'none', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>✏️ Edit</button>
-                            <button onClick={() => setListings(listings.filter(x => x.id !== l.id))}
-                              style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>🗑 Delete</button>
+                              style={{ background: '#f0f4ff', color: '#3b5bdb', border: 'none', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+                            <button onClick={() => deleteListing(l.id)}
+                              style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}>Delete</button>
                           </div>
                         </div>
                       )}
@@ -429,7 +453,7 @@ function Profile() {
           </div>
         )}
 
-        {/* Bookings Tab */}
+        {/* ── Bookings Tab ── */}
         {activeTab === 'bookings' && (
           <>
             {/* User info */}
@@ -440,7 +464,7 @@ function Profile() {
               <div style={{ flex: 1 }}>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700 }}>{user.name}</h3>
                 <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}>📧 {user.email}</p>
-                {user.location && <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}>📍 {user.location}</p>}
+                {user.location && <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}> {user.location}</p>}
                 {user.memberSince && <p style={{ margin: '3px 0', color: '#aaa', fontSize: '0.8rem' }}>Member since {user.memberSince}</p>}
               </div>
               <button onClick={() => setShowEditInfo(true)} style={{ background: '#1e3a5f', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, alignSelf: 'flex-start' }}>Edit</button>
@@ -448,7 +472,7 @@ function Profile() {
 
             {/* Trip Bookings */}
             <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '1.5rem', marginBottom: '1.2rem' }}>
-              <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>✈️ My Trip Bookings</h4>
+              <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>My Trip Bookings</h4>
               {tripBookings.length === 0 ? (
                 <p style={{ color: '#aaa', fontSize: '0.88rem', textAlign: 'center', padding: '1rem 0', margin: 0 }}>No trips booked yet. Go to <strong>Travel Destinations</strong> to book one!</p>
               ) : (
@@ -458,7 +482,7 @@ function Profile() {
                       <div style={{ width: 48, height: 48, borderRadius: 10, background: b.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>{b.emoji}</div>
                       <div style={{ flex: 1 }}>
                         <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{b.city}, {b.country}</p>
-                        <p style={{ margin: '2px 0 0', color: '#888', fontSize: '0.82rem' }}>📅 {b.checkIn} → {b.checkOut} · 👥 {b.guests} guest{b.guests > '1' ? 's' : ''}</p>
+                        <p style={{ margin: '2px 0 0', color: '#888', fontSize: '0.82rem' }}> {b.checkIn} → {b.checkOut} ·  {b.guests} guest{b.guests > '1' ? 's' : ''}</p>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end', flexShrink: 0 }}>
                         <span style={{ background: '#dcfce7', color: '#16a34a', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{b.status}</span>
@@ -472,7 +496,7 @@ function Profile() {
 
             {/* Property Bookings */}
             <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '1.5rem', marginBottom: '1.2rem' }}>
-              <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>🏠 My Property Bookings</h4>
+              <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>My Property Bookings</h4>
               {propertyBookings.length === 0 ? (
                 <p style={{ color: '#aaa', fontSize: '0.88rem', textAlign: 'center', padding: '1rem 0', margin: 0 }}>No properties booked yet. Go to <strong>Search Properties</strong> to book one!</p>
               ) : (
@@ -483,8 +507,8 @@ function Profile() {
                       <div style={{ padding: '0.8rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{b.title}</p>
-                          <p style={{ margin: '2px 0', color: '#888', fontSize: '0.82rem' }}>📍 {b.location} · 💰 {b.price}</p>
-                          <p style={{ margin: '2px 0', color: '#888', fontSize: '0.82rem' }}>📅 {b.checkIn} → {b.checkOut} · 👥 {b.guests} guest{b.guests > '1' ? 's' : ''}</p>
+                          <p style={{ margin: '2px 0', color: '#888', fontSize: '0.82rem' }}>{b.location} · {b.price}</p>
+                          <p style={{ margin: '2px 0', color: '#888', fontSize: '0.82rem' }}>{b.checkIn} → {b.checkOut} · {b.guests} guest{b.guests > '1' ? 's' : ''}</p>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end', flexShrink: 0, marginLeft: '1rem' }}>
                           <span style={{ background: '#dcfce7', color: '#16a34a', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{b.status}</span>
@@ -500,15 +524,15 @@ function Profile() {
             {/* Preferences */}
             <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '1.5rem', marginBottom: '1.2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>✈️ Travel Preferences</h4>
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>Travel Preferences</h4>
                 <button onClick={() => setShowEditPrefs(true)} style={{ background: '#1e3a5f', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600 }}>Update</button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                 {[
-                  { label: 'Budget', key: 'budget', emoji: '💰' },
-                  { label: 'Travel Style', key: 'style', emoji: '🧭' },
-                  { label: 'Preferred Climate', key: 'climate', emoji: '☀️' },
-                  { label: 'Trip Length', key: 'length', emoji: '📆' },
+                  { label: 'Budget', key: 'budget', },
+                  { label: 'Travel Style', key: 'style',},
+                  { label: 'Preferred Climate', key: 'climate',},
+                  { label: 'Trip Length', key: 'length',},
                 ].map(p => (
                   <div key={p.key} style={{ background: '#f8faff', borderRadius: 10, padding: '0.8rem 1rem' }}>
                     <p style={{ margin: 0, fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{p.emoji} {p.label}</p>
@@ -520,11 +544,11 @@ function Profile() {
 
             {/* Recommendations */}
             <div>
-              <h4 style={{ margin: '0 0 0.8rem', fontSize: '1rem', fontWeight: 700 }}>⭐ Recommended for You</h4>
+              <h4 style={{ margin: '0 0 0.8rem', fontSize: '1rem', fontWeight: 700 }}>Recommended for You</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 {[
-                  { city: 'Lisbon', country: 'Portugal', emoji: '🏙️', color: '#fde8d8' },
-                  { city: 'Bali', country: 'Indonesia', emoji: '🏝️', color: '#d0eaf8' },
+                  { city: 'Lisbon', country: 'Portugal', color: '#fde8d8' },
+                  { city: 'Bali', country: 'Indonesia', color: '#d0eaf8' },
                 ].map(rec => (
                   <div key={rec.city} onClick={() => navigate('/destinations')} style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', overflow: 'hidden', cursor: 'pointer' }}>
                     <div style={{ background: rec.color, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>{rec.emoji}</div>
