@@ -59,7 +59,7 @@ function MessagesTab() {
         <div style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
           {messages.length === 0 ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#ccc', gap: '0.4rem' }}>
-              <div style={{ fontSize: '2rem' }}>💬</div>
+              <div style={{ fontSize: '2rem' }}></div>
               <p style={{ margin: 0, fontSize: '0.85rem' }}>No messages yet</p>
             </div>
           ) : messages.map(msg => (
@@ -124,7 +124,7 @@ function ModalButtons({ onCancel, onSave }) {
 }
 
 function ErrorBox({ msg }) {
-  return <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '0.6rem 0.9rem', color: '#c00', fontSize: '0.83rem', marginBottom: '1rem' }}>⚠️ {msg}</div>;
+  return <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '0.6rem 0.9rem', color: '#c00', fontSize: '0.83rem', marginBottom: '1rem' }}>{msg}</div>;
 }
 
 function EditInfoModal({ user, onClose, onSave }) {
@@ -167,7 +167,7 @@ function EditPrefsModal({ prefs, onClose, onSave }) {
         {[
           { label: 'Budget', key: 'budget' },
           { label: 'Travel Style', key: 'style' },
-          { label: ' Preferred Climate', key: 'climate' },
+          { label: 'Preferred Climate', key: 'climate' },
           { label: 'Trip Length', key: 'length' },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: '1rem' }}>
@@ -189,6 +189,8 @@ function EditPrefsModal({ prefs, onClose, onSave }) {
 // ── Main Profile Page 
 function Profile() {
   const navigate = useNavigate();
+  const userId = localStorage.getItem('userId') || 'guest';
+
   const [activeTab, setActiveTab] = useState('bookings');
   const [showEditInfo, setShowEditInfo] = useState(false);
   const [showEditPrefs, setShowEditPrefs] = useState(false);
@@ -202,9 +204,9 @@ function Profile() {
     image: null, imagePreview: null,
   });
 
-  // Load listings from localStorage so they persist across sessions
+  // All localStorage keys are scoped to the logged-in user
   const [listings, setListings] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('listings') || '[]'); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(`listings_${userId}`) || '[]'); } catch { return []; }
   });
 
   const [user, setUser] = useState(() => {
@@ -220,29 +222,30 @@ function Profile() {
   });
 
   const [tripBookings, setTripBookings] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tripBookings') || '[]'); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(`tripBookings_${userId}`) || '[]'); } catch { return []; }
   });
 
   const [propertyBookings, setPropertyBookings] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('propertyBookings') || '[]'); } catch { return []; }
+    try { return JSON.parse(localStorage.getItem(`propertyBookings_${userId}`) || '[]'); } catch { return []; }
   });
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
+    localStorage.removeItem('userId');
     navigate('/login');
   };
 
   const cancelTrip = (id) => {
     const updated = tripBookings.filter(b => b.id !== id);
     setTripBookings(updated);
-    localStorage.setItem('tripBookings', JSON.stringify(updated));
+    localStorage.setItem(`tripBookings_${userId}`, JSON.stringify(updated));
   };
 
   const cancelPropertyBooking = (id) => {
     const updated = propertyBookings.filter(b => b.id !== id);
     setPropertyBookings(updated);
-    localStorage.setItem('propertyBookings', JSON.stringify(updated));
+    localStorage.setItem(`propertyBookings_${userId}`, JSON.stringify(updated));
   };
 
   const handleSaveUser = (updated) => {
@@ -255,7 +258,7 @@ function Profile() {
     if (listingForm.title && listingForm.location && listingForm.price) {
       const newListings = [...listings, { ...listingForm, id: Date.now() }];
       setListings(newListings);
-      localStorage.setItem('listings', JSON.stringify(newListings));
+      localStorage.setItem(`listings_${userId}`, JSON.stringify(newListings));
       setListingSubmitted(true);
     }
   };
@@ -263,14 +266,14 @@ function Profile() {
   const saveListing = (id) => {
     const updated = listings.map(x => x.id === id ? { ...x, ...editForm } : x);
     setListings(updated);
-    localStorage.setItem('listings', JSON.stringify(updated));
+    localStorage.setItem(`listings_${userId}`, JSON.stringify(updated));
     setEditingId(null);
   };
 
   const deleteListing = (id) => {
     const remaining = listings.filter(x => x.id !== id);
     setListings(remaining);
-    localStorage.setItem('listings', JSON.stringify(remaining));
+    localStorage.setItem(`listings_${userId}`, JSON.stringify(remaining));
   };
 
   const resetListing = () => {
@@ -297,7 +300,7 @@ function Profile() {
               <div style={{ padding: '2.5rem', textAlign: 'center' }}>
                 <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}></div>
                 <h3 style={{ margin: '0 0 0.5rem', color: '#1e3a5f', fontSize: '1.3rem', fontWeight: 800 }}>Property Listed!</h3>
-                <p style={{ color: '#666', fontSize: '0.92rem', marginBottom: '1.5rem' }}><strong>{listingForm.title}</strong> in {listingForm.location} has been successfully listed and saved.</p>
+                <p style={{ color: '#666', fontSize: '0.92rem', marginBottom: '1.5rem' }}><strong>{listingForm.title}</strong> in {listingForm.location} has been saved to your profile.</p>
                 <button onClick={resetListing} style={{ width: '100%', padding: '0.85rem', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', border: 'none', borderRadius: 12, fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}>Done</button>
               </div>
             ) : (
@@ -352,19 +355,13 @@ function Profile() {
         </div>
       )}
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #3b5bdb 100%)', padding: '2rem 2rem 0', color: '#fff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <button onClick={() => navigate('/')} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: '0.85rem' }}>
-            ← Back
-          </button>
-          <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.3)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: '6px 16px', borderRadius: 20, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
-            Log Out
-          </button>
+          <button onClick={() => navigate('/')} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: '0.85rem' }}>← Back</button>
+          <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.3)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: '6px 16px', borderRadius: 20, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Log Out</button>
         </div>
-
         <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.4rem', fontWeight: 700 }}>User Profile</h2>
-
         <div style={{ display: 'flex', gap: '2rem' }}>
           {['bookings', 'messages', 'list property'].map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
@@ -384,7 +381,7 @@ function Profile() {
 
         {activeTab === 'messages' && <MessagesTab />}
 
-        {/* ── List Property Tab ── */}
+        {/* List Property Tab */}
         {activeTab === 'list property' && (
           <div>
             {listings.length === 0 ? (
@@ -429,8 +426,8 @@ function Profile() {
                         <div style={{ padding: '1.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div style={{ flex: 1 }}>
                             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>{l.title}</h3>
-                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}> {l.location}</p>
-                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}> {l.price} · {l.type} · {l.bedrooms} bed · {l.guests} guests</p>
+                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}>{l.location}</p>
+                            <p style={{ margin: '3px 0', color: '#888', fontSize: '0.85rem' }}>{l.price} · {l.type} · {l.bedrooms} bed · {l.guests} guests</p>
                             {l.description && <p style={{ margin: '6px 0 0', color: '#666', fontSize: '0.82rem', lineHeight: 1.5 }}>{l.description}</p>}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', flexShrink: 0, marginLeft: '1rem' }}>
@@ -453,7 +450,7 @@ function Profile() {
           </div>
         )}
 
-        {/* ── Bookings Tab ── */}
+        {/* Bookings Tab */}
         {activeTab === 'bookings' && (
           <>
             {/* User info */}
@@ -463,8 +460,8 @@ function Profile() {
               </div>
               <div style={{ flex: 1 }}>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700 }}>{user.name}</h3>
-                <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}>📧 {user.email}</p>
-                {user.location && <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}> {user.location}</p>}
+                <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}>{user.email}</p>
+                {user.location && <p style={{ margin: '3px 0', color: '#666', fontSize: '0.88rem' }}>📍 {user.location}</p>}
                 {user.memberSince && <p style={{ margin: '3px 0', color: '#aaa', fontSize: '0.8rem' }}>Member since {user.memberSince}</p>}
               </div>
               <button onClick={() => setShowEditInfo(true)} style={{ background: '#1e3a5f', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, alignSelf: 'flex-start' }}>Edit</button>
@@ -474,7 +471,7 @@ function Profile() {
             <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '1.5rem', marginBottom: '1.2rem' }}>
               <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>My Trip Bookings</h4>
               {tripBookings.length === 0 ? (
-                <p style={{ color: '#aaa', fontSize: '0.88rem', textAlign: 'center', padding: '1rem 0', margin: 0 }}>No trips booked yet. Go to <strong>Travel Destinations</strong> to book one!</p>
+                <p style={{ color: '#aaa', fontSize: '0.88rem', textAlign: 'center', padding: '1rem 0', margin: 0 }}>No trips booked yet!</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                   {tripBookings.map(b => (
@@ -482,7 +479,7 @@ function Profile() {
                       <div style={{ width: 48, height: 48, borderRadius: 10, background: b.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>{b.emoji}</div>
                       <div style={{ flex: 1 }}>
                         <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>{b.city}, {b.country}</p>
-                        <p style={{ margin: '2px 0 0', color: '#888', fontSize: '0.82rem' }}> {b.checkIn} → {b.checkOut} ·  {b.guests} guest{b.guests > '1' ? 's' : ''}</p>
+                        <p style={{ margin: '2px 0 0', color: '#888', fontSize: '0.82rem' }}>{b.checkIn} → {b.checkOut} · {b.guests} guest{b.guests > '1' ? 's' : ''}</p>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end', flexShrink: 0 }}>
                         <span style={{ background: '#dcfce7', color: '#16a34a', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{b.status}</span>
@@ -498,7 +495,7 @@ function Profile() {
             <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '1.5rem', marginBottom: '1.2rem' }}>
               <h4 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700 }}>My Property Bookings</h4>
               {propertyBookings.length === 0 ? (
-                <p style={{ color: '#aaa', fontSize: '0.88rem', textAlign: 'center', padding: '1rem 0', margin: 0 }}>No properties booked yet. Go to <strong>Search Properties</strong> to book one!</p>
+                <p style={{ color: '#aaa', fontSize: '0.88rem', textAlign: 'center', padding: '1rem 0', margin: 0 }}>No properties booked yet!</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                   {propertyBookings.map(b => (
@@ -529,7 +526,7 @@ function Profile() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                 {[
-                  { label: 'Budget', key: 'budget', },
+                  { label: 'Budget', key: 'budget',},
                   { label: 'Travel Style', key: 'style',},
                   { label: 'Preferred Climate', key: 'climate',},
                   { label: 'Trip Length', key: 'length',},
@@ -547,8 +544,8 @@ function Profile() {
               <h4 style={{ margin: '0 0 0.8rem', fontSize: '1rem', fontWeight: 700 }}>Recommended for You</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 {[
-                  { city: 'Lisbon', country: 'Portugal', color: '#fde8d8' },
-                  { city: 'Bali', country: 'Indonesia', color: '#d0eaf8' },
+                  { city: 'Lisbon', country: 'Portugal',color: '#fde8d8' },
+                  { city: 'Bali', country: 'Indonesia',color: '#d0eaf8' },
                 ].map(rec => (
                   <div key={rec.city} onClick={() => navigate('/destinations')} style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', overflow: 'hidden', cursor: 'pointer' }}>
                     <div style={{ background: rec.color, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>{rec.emoji}</div>

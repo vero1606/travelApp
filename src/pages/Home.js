@@ -36,7 +36,9 @@ function BookingModal({ destination, onClose, navigate }) {
 
   const handleConfirm = () => {
     if (validate()) {
-      const existing = JSON.parse(localStorage.getItem('tripBookings') || '[]');
+      const userId = localStorage.getItem('userId') || 'guest';
+      const key = `tripBookings_${userId}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
       const newBooking = {
         id: Date.now(),
         city: destination.city,
@@ -47,7 +49,7 @@ function BookingModal({ destination, onClose, navigate }) {
         status: 'Confirmed',
         color: getCategoryColor(destination.category),
       };
-      localStorage.setItem('tripBookings', JSON.stringify([...existing, newBooking]));
+      localStorage.setItem(key, JSON.stringify([...existing, newBooking]));
       setStep('confirm');
     }
   };
@@ -58,7 +60,6 @@ function BookingModal({ destination, onClose, navigate }) {
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '1rem' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 460, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto', animation: 'fadeIn 0.18s ease' }}>
 
-        {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', padding: '1.3rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ margin: 0, color: '#fff', fontWeight: 800, fontSize: '1.1rem' }}>Book a Trip</h3>
@@ -74,8 +75,6 @@ function BookingModal({ destination, onClose, navigate }) {
             <p style={{ color: '#666', fontSize: '0.92rem', marginBottom: '1.5rem' }}>
               Thanks <strong>{form.name}</strong>! Your trip to <strong>{destination.city}</strong> has been confirmed.
             </p>
-
-            {/* Booking summary */}
             <div style={{ background: '#f8faff', borderRadius: 12, padding: '1rem', textAlign: 'left', marginBottom: '1.5rem' }}>
               {[
                 { label: 'Destination', value: `${destination.city}, ${destination.country}` },
@@ -89,11 +88,9 @@ function BookingModal({ destination, onClose, navigate }) {
                 </div>
               ))}
             </div>
-
             <p style={{ color: '#aaa', fontSize: '0.8rem', marginBottom: '1.5rem' }}>
               Confirmation sent to <strong>{form.email}</strong>
             </p>
-
             {/* Find a property prompt */}
             <div style={{ background: '#f0f4ff', borderRadius: 14, padding: '1.2rem', marginBottom: '0.8rem', border: '1.5px solid #dbeafe' }}>
               <div style={{ fontSize: '1.8rem', marginBottom: '0.4rem' }}></div>
@@ -117,7 +114,7 @@ function BookingModal({ destination, onClose, navigate }) {
           <div style={{ padding: '1.5rem' }}>
             {destination.bestTimeToTravel && (
               <div style={{ background: '#f0f4ff', borderRadius: 10, padding: '0.7rem 1rem', marginBottom: '1.2rem', fontSize: '0.83rem', color: '#3b5bdb' }}>
-                 <strong>Best time to visit:</strong> {destination.bestTimeToTravel}
+                <strong>Best time to visit:</strong> {destination.bestTimeToTravel}
               </div>
             )}
 
@@ -185,7 +182,7 @@ function Modal({ dest, onClose, onBook }) {
         <div style={{ background: getCategoryColor(dest.category), padding: '2rem 2rem 1.5rem', position: 'relative' }}>
           <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: '1rem', color: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
           <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800, color: '#111' }}>{dest.city}</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '1rem', color: '#444' }}>{dest.country}</p>
+          <p style={{ margin: '4px 0 0', fontSize: '1rem', color: '#444' }}>🌍 {dest.country}</p>
         </div>
         <div style={{ padding: '1.5rem 2rem 2rem' }}>
           <div style={{ background: '#f8faff', borderRadius: 10, padding: '0.9rem 1.1rem', marginBottom: '1.3rem', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
@@ -232,7 +229,7 @@ function DestinationCard({ dest, onClick }) {
           )}
         </div>
         <div style={{ marginTop: '0.8rem', fontSize: '0.8rem', color: '#555', borderTop: '1px solid #f0f0f0', paddingTop: '0.7rem' }}>
-           <strong>Best time:</strong> {dest.bestTimeToTravel || 'Year-round'}
+          <strong>Best time:</strong> {dest.bestTimeToTravel || 'Year-round'}
         </div>
       </div>
     </div>
@@ -290,7 +287,7 @@ function Home() {
         {error && <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '1rem', marginBottom: '1.5rem', color: '#c00' }}>{error}</div>}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#888' }}>
-            <div style={{ fontSize: '2rem' }}></div>
+            <div style={{ fontSize: '2rem' }}>✈️</div>
             <p>Loading destinations...</p>
           </div>
         ) : destinations.length === 0 ? (

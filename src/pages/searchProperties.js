@@ -57,8 +57,9 @@ function BookingModal({ property, onClose }) {
 
   const handleConfirm = () => {
     if (validate()) {
-      // Save to localStorage so Profile page can read it
-      const existing = JSON.parse(localStorage.getItem('propertyBookings') || '[]');
+      const userId = localStorage.getItem('userId') || 'guest';
+      const key = `propertyBookings_${userId}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
       const newBooking = {
         id: Date.now(),
         title: property.title,
@@ -70,7 +71,7 @@ function BookingModal({ property, onClose }) {
         status: 'Confirmed',
         image: property.image,
       };
-      localStorage.setItem('propertyBookings', JSON.stringify([...existing, newBooking]));
+      localStorage.setItem(key, JSON.stringify([...existing, newBooking]));
       setStep('confirm');
     }
   };
@@ -238,7 +239,7 @@ function PropertyCard({ property, onClick }) {
           ))}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.8rem', paddingTop: '0.7rem', borderTop: '1px solid #f0f0f0' }}>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}> {property.guests} guests · {property.bedrooms} bed</p>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: '#888' }}>{property.guests} guests · {property.bedrooms} bed</p>
           <p style={{ margin: 0, fontSize: '0.8rem', color: '#f59e0b' }}>{property.rating}</p>
         </div>
       </div>

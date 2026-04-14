@@ -20,6 +20,7 @@ function Login() {
       setError('');
       const { data } = await axios.post('http://localhost:3001/api/auth/login', form);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userData', JSON.stringify({
         name: data.user.name,
         email: data.user.email,

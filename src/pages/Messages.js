@@ -72,7 +72,7 @@ function Messages() {
           color: '#fff', padding: '6px 14px', borderRadius: 20,
           cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1rem',
         }}>← Back</button>
-        <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700 }}>💬 Messages</h2>
+        <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700 }}>Messages</h2>
         <p style={{ margin: '4px 0 0', opacity: 0.75, fontSize: '0.88rem' }}>Chat with your hosts</p>
       </div>
 
