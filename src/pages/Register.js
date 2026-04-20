@@ -49,13 +49,13 @@ function Register() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🌏</div>
-          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#1e3a5f' }}>TravelApp</h1>
+          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#1e3a5f' }}>TravelWeb</h1>
           <p style={{ margin: '4px 0 0', color: '#888', fontSize: '0.9rem' }}>Create your account</p>
         </div>
 
         {error && (
           <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '0.7rem 1rem', color: '#c00', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
-            ⚠️ {error}
+             {error}
           </div>
         )}
 
