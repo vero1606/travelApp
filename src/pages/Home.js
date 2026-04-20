@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+const UNSPLASH_KEY = 'j6037wgdkYswYf-VLWyWHOsGJvtqnH33OfA3bAIREok';
+
 const categoryColors = {
   history: '#e8d5b7', culture: '#d4edda', food: '#fde8d8',
   beach: '#d0eaf8', nature: '#d4edda', nightlife: '#e8d0f8',
@@ -16,52 +18,45 @@ function getCategoryColor(category) {
   return categoryColors[first] || categoryColors.default;
 }
 
-// ── Experience type mappings 
+// ── Unsplash photo fetcher with cache 
+const photoCache = {};
+async function fetchCityPhoto(city, country) {
+  const key = `${city},${country}`;
+  if (photoCache[key] !== undefined) return photoCache[key];
+  try {
+    const { data } = await axios.get('https://api.unsplash.com/search/photos', {
+      params: { query: `${city} ${country} travel`, per_page: 1, orientation: 'landscape' },
+      headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` },
+    });
+    const url = data.results?.[0]?.urls?.regular || null;
+    photoCache[key] = url;
+    return url;
+  } catch {
+    photoCache[key] = null;
+    return null;
+  }
+}
+
+// ── Filter config 
 const experienceMap = {
-  'Adventure': ['hiking', 'mountains', 'trekking', 'safari', 'diving', 'surfing', 'skiing', 'adventure', 'volcanoes', 'wildlife', 'canyon', 'rock climbing'],
+  'Adventure': ['hiking', 'mountains', 'trekking', 'safari', 'diving', 'surfing', 'skiing', 'adventure', 'volcanoes', 'wildlife', 'canyon'],
   'Beach & Relax': ['beach', 'island', 'snorkeling', 'diving', 'resort', 'lagoon', 'coral'],
   'City Break': ['city', 'culture', 'museums', 'architecture', 'nightlife', 'shopping', 'street food', 'canals', 'history'],
   'Nature': ['nature', 'wildlife', 'jungle', 'rainforest', 'national park', 'forest', 'lakes', 'fjords', 'safari'],
   'Culture & History': ['history', 'ancient ruins', 'temples', 'heritage', 'culture', 'art', 'mythology', 'archaeology'],
   'Food & Wine': ['food', 'wine', 'cuisine', 'gastronomy', 'culinary', 'street food', 'food culture'],
 };
-
 const seasonMap = {
   'Spring (Mar–May)': ['mar', 'apr', 'may'],
   'Summer (Jun–Aug)': ['jun', 'jul', 'aug'],
   'Autumn (Sep–Nov)': ['sep', 'oct', 'nov'],
   'Winter (Dec–Feb)': ['dec', 'jan', 'feb'],
 };
-
 const continentMap = {
-  'Europe': [
-    'France', 'Italy', 'Spain', 'Germany', 'Portugal', 'Greece', 'Netherlands',
-    'United Kingdom', 'Switzerland', 'Austria', 'Czech Republic', 'Hungary', 'Poland',
-    'Croatia', 'Norway', 'Sweden', 'Denmark', 'Finland', 'Iceland', 'Ireland',
-    'Scotland', 'Belgium', 'Romania', 'Bulgaria', 'Serbia', 'Montenegro', 'Slovenia',
-    'Slovakia', 'Estonia', 'Latvia', 'Lithuania', 'Malta', 'Cyprus', 'Luxembourg',
-    'Monaco', 'Andorra', 'San Marino', 'Albania', 'North Macedonia', 'Bosnia', 'Kosovo',
-  ],
-  'Asia': [
-    'Japan', 'China', 'Thailand', 'Vietnam', 'Indonesia', 'India', 'Sri Lanka',
-    'Nepal', 'Cambodia', 'Myanmar', 'Laos', 'Philippines', 'Malaysia', 'Singapore',
-    'South Korea', 'Taiwan', 'Hong Kong', 'Maldives', 'Bali', 'Bhutan', 'Bangladesh',
-    'Pakistan', 'Mongolia', 'Uzbekistan', 'Kazakhstan', 'Georgia', 'Armenia',
-    'Azerbaijan', 'Jordan', 'Israel', 'Lebanon', 'Turkey', 'UAE', 'Qatar',
-    'Oman', 'Saudi Arabia', 'Kuwait', 'Bahrain', 'Yemen', 'Iraq', 'Iran', 'Syria',
-  ],
-  'America': [
-    'USA', 'Canada', 'Mexico', 'Brazil', 'Argentina', 'Colombia', 'Peru', 'Chile',
-    'Bolivia', 'Ecuador', 'Venezuela', 'Uruguay', 'Paraguay', 'Cuba', 'Jamaica',
-    'Costa Rica', 'Panama', 'Guatemala', 'Honduras', 'Nicaragua', 'El Salvador',
-    'Belize', 'Trinidad', 'Barbados', 'Dominican Republic', 'Haiti', 'Puerto Rico', 'Bahamas',
-  ],
-  'Africa': [
-    'Morocco', 'Egypt', 'South Africa', 'Kenya', 'Tanzania', 'Ethiopia',
-    'Ghana', 'Nigeria', 'Senegal', 'Rwanda', 'Uganda', 'Mozambique',
-    'Madagascar', 'Namibia', 'Botswana', 'Zimbabwe', 'Zambia', 'Malawi',
-    'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Ivory Coast', 'Cameroon',
-  ],
+  'Europe': ['France', 'Italy', 'Spain', 'Germany', 'Portugal', 'Greece', 'Netherlands', 'United Kingdom', 'Switzerland', 'Austria', 'Czech Republic', 'Hungary', 'Poland', 'Croatia', 'Norway', 'Sweden', 'Denmark', 'Finland', 'Iceland', 'Ireland', 'Scotland', 'Belgium', 'Romania', 'Bulgaria', 'Serbia', 'Montenegro', 'Slovenia', 'Slovakia', 'Estonia', 'Latvia', 'Lithuania', 'Malta', 'Cyprus', 'Luxembourg', 'Monaco', 'Andorra', 'San Marino', 'Albania', 'North Macedonia', 'Bosnia', 'Kosovo'],
+  'Asia': ['Japan', 'China', 'Thailand', 'Vietnam', 'Indonesia', 'India', 'Sri Lanka', 'Nepal', 'Cambodia', 'Myanmar', 'Laos', 'Philippines', 'Malaysia', 'Singapore', 'South Korea', 'Taiwan', 'Hong Kong', 'Maldives', 'Bali', 'Bhutan', 'Bangladesh', 'Pakistan', 'Mongolia', 'Uzbekistan', 'Kazakhstan', 'Georgia', 'Armenia', 'Azerbaijan', 'Jordan', 'Israel', 'Lebanon', 'Turkey', 'UAE', 'Qatar', 'Oman', 'Saudi Arabia', 'Kuwait', 'Bahrain', 'Yemen', 'Iraq', 'Iran', 'Syria'],
+  'Americas': ['USA', 'Canada', 'Mexico', 'Brazil', 'Argentina', 'Colombia', 'Peru', 'Chile', 'Bolivia', 'Ecuador', 'Venezuela', 'Uruguay', 'Paraguay', 'Cuba', 'Jamaica', 'Costa Rica', 'Panama', 'Guatemala', 'Honduras', 'Nicaragua', 'El Salvador', 'Belize', 'Trinidad', 'Barbados', 'Dominican Republic', 'Haiti', 'Puerto Rico', 'Bahamas'],
+  'Africa': ['Morocco', 'Egypt', 'South Africa', 'Kenya', 'Tanzania', 'Ethiopia', 'Ghana', 'Nigeria', 'Senegal', 'Rwanda', 'Uganda', 'Mozambique', 'Madagascar', 'Namibia', 'Botswana', 'Zimbabwe', 'Zambia', 'Malawi', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Ivory Coast', 'Cameroon'],
   'Oceania': ['Australia', 'New Zealand', 'Fiji', 'Papua New Guinea', 'Samoa', 'Tonga', 'Vanuatu'],
 };
 
@@ -71,14 +66,12 @@ function matchesExperience(dest, exp) {
   const cats = (dest.category || '').toLowerCase();
   return keywords.some(k => cats.includes(k));
 }
-
 function matchesSeason(dest, season) {
   if (!season) return true;
   const months = seasonMap[season] || [];
   const best = (dest.bestTimeToTravel || '').toLowerCase();
   return months.some(m => best.includes(m));
 }
-
 function matchesContinent(dest, continent) {
   if (!continent) return true;
   const countries = continentMap[continent] || [];
@@ -88,16 +81,10 @@ function matchesContinent(dest, continent) {
 // ── Filter Panel 
 function FilterPanel({ filters, setFilters, onClear, count, total }) {
   const [open, setOpen] = useState(false);
-
-  const experienceOptions = Object.keys(experienceMap);
-  const seasonOptions = Object.keys(seasonMap);
-  const continentOptions = Object.keys(continentMap);
-
   const activeCount = [filters.experience, filters.season, filters.continent].filter(Boolean).length;
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '1.2rem 1.5rem 0' }}>
-      {/* Filter bar */}
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
         <button onClick={() => setOpen(!open)} style={{
           display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -110,77 +97,51 @@ function FilterPanel({ filters, setFilters, onClear, count, total }) {
           Filters {activeCount > 0 && <span style={{ background: '#3b5bdb', color: '#fff', borderRadius: '50%', width: 18, height: 18, fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{activeCount}</span>}
         </button>
 
-        {/* Active filter chips */}
         {filters.experience && (
           <span style={{ background: '#f0f4ff', color: '#3b5bdb', padding: '6px 12px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             {filters.experience}
-            <button onClick={() => setFilters({ ...filters, experience: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b5bdb', fontSize: '0.9rem', padding: 0, lineHeight: 1 }}>✕</button>
+            <button onClick={() => setFilters({ ...filters, experience: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b5bdb', fontSize: '0.9rem', padding: 0 }}>✕</button>
           </span>
         )}
         {filters.season && (
           <span style={{ background: '#f0f4ff', color: '#3b5bdb', padding: '6px 12px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             {filters.season}
-            <button onClick={() => setFilters({ ...filters, season: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b5bdb', fontSize: '0.9rem', padding: 0, lineHeight: 1 }}>✕</button>
+            <button onClick={() => setFilters({ ...filters, season: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b5bdb', fontSize: '0.9rem', padding: 0 }}>✕</button>
           </span>
         )}
         {filters.continent && (
           <span style={{ background: '#f0f4ff', color: '#3b5bdb', padding: '6px 12px', borderRadius: 20, fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             {filters.continent}
-            <button onClick={() => setFilters({ ...filters, continent: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b5bdb', fontSize: '0.9rem', padding: 0, lineHeight: 1 }}>✕</button>
+            <button onClick={() => setFilters({ ...filters, continent: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b5bdb', fontSize: '0.9rem', padding: 0 }}>✕</button>
           </span>
         )}
         {activeCount > 0 && (
           <button onClick={onClear} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.82rem', textDecoration: 'underline' }}>Clear all</button>
         )}
-
         <span style={{ marginLeft: 'auto', color: '#888', fontSize: '0.85rem' }}>
           {count === total ? `${total} destinations` : `${count} of ${total} destinations`}
         </span>
       </div>
 
-      {/* Dropdown panel */}
       {open && (
         <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '1.5rem', marginBottom: '1rem', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', border: '1px solid #f0f0f0' }}>
-
-          {/* Experience */}
-          <div>
-            <p style={{ margin: '0 0 0.8rem', fontWeight: 700, fontSize: '0.85rem', color: '#333', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Experience</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {experienceOptions.map(opt => (
-                <button key={opt} onClick={() => { setFilters({ ...filters, experience: filters.experience === opt ? '' : opt }); }}
-                  style={{ textAlign: 'left', padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${filters.experience === opt ? '#3b5bdb' : '#e0e0e0'}`, background: filters.experience === opt ? '#f0f4ff' : '#fff', color: filters.experience === opt ? '#3b5bdb' : '#444', cursor: 'pointer', fontWeight: filters.experience === opt ? 700 : 400, fontSize: '0.85rem' }}>
-                  {opt}
-                </button>
-              ))}
+          {[
+            { label: 'Experience', key: 'experience', options: Object.keys(experienceMap) },
+            { label: 'Best Season', key: 'season', options: Object.keys(seasonMap) },
+            { label: 'Continent', key: 'continent', options: Object.keys(continentMap) },
+          ].map(col => (
+            <div key={col.key}>
+              <p style={{ margin: '0 0 0.8rem', fontWeight: 700, fontSize: '0.85rem', color: '#333', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{col.label}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {col.options.map(opt => (
+                  <button key={opt} onClick={() => setFilters({ ...filters, [col.key]: filters[col.key] === opt ? '' : opt })}
+                    style={{ textAlign: 'left', padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${filters[col.key] === opt ? '#3b5bdb' : '#e0e0e0'}`, background: filters[col.key] === opt ? '#f0f4ff' : '#fff', color: filters[col.key] === opt ? '#3b5bdb' : '#444', cursor: 'pointer', fontWeight: filters[col.key] === opt ? 700 : 400, fontSize: '0.85rem' }}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Season */}
-          <div>
-            <p style={{ margin: '0 0 0.8rem', fontWeight: 700, fontSize: '0.85rem', color: '#333', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Best Season</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {seasonOptions.map(opt => (
-                <button key={opt} onClick={() => { setFilters({ ...filters, season: filters.season === opt ? '' : opt }); }}
-                  style={{ textAlign: 'left', padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${filters.season === opt ? '#3b5bdb' : '#e0e0e0'}`, background: filters.season === opt ? '#f0f4ff' : '#fff', color: filters.season === opt ? '#3b5bdb' : '#444', cursor: 'pointer', fontWeight: filters.season === opt ? 700 : 400, fontSize: '0.85rem' }}>
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Continent */}
-          <div>
-            <p style={{ margin: '0 0 0.8rem', fontWeight: 700, fontSize: '0.85rem', color: '#333', textTransform: 'uppercase', letterSpacing: '0.04em' }}> Continent</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {continentOptions.map(opt => (
-                <button key={opt} onClick={() => { setFilters({ ...filters, continent: filters.continent === opt ? '' : opt }); }}
-                  style={{ textAlign: 'left', padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${filters.continent === opt ? '#3b5bdb' : '#e0e0e0'}`, background: filters.continent === opt ? '#f0f4ff' : '#fff', color: filters.continent === opt ? '#3b5bdb' : '#444', cursor: 'pointer', fontWeight: filters.continent === opt ? 700 : 400, fontSize: '0.85rem' }}>
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-
+          ))}
           <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', borderTop: '1px solid #f0f0f0', paddingTop: '1rem', marginTop: '0.5rem' }}>
             <button onClick={onClear} style={{ padding: '8px 20px', borderRadius: 8, border: '1.5px solid #e0e0e0', background: '#fff', color: '#555', cursor: 'pointer', fontWeight: 600, fontSize: '0.88rem' }}>Clear</button>
             <button onClick={() => setOpen(false)} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #1e3a5f, #3b5bdb)', color: '#fff', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem' }}>Apply</button>
@@ -214,18 +175,11 @@ function BookingModal({ destination, onClose, navigate }) {
       const userId = localStorage.getItem('userId') || 'guest';
       const key = `tripBookings_${userId}`;
       const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      const newBooking = {
-        id: Date.now(),
-        city: destination.city,
-        country: destination.country,
-        checkIn: form.checkIn,
-        checkOut: form.checkOut,
-        guests: form.guests,
-        status: 'Confirmed',
-        color: getCategoryColor(destination.category),
-      
-      };
-      localStorage.setItem(key, JSON.stringify([...existing, newBooking]));
+      localStorage.setItem(key, JSON.stringify([...existing, {
+        id: Date.now(), city: destination.city, country: destination.country,
+        checkIn: form.checkIn, checkOut: form.checkOut, guests: form.guests,
+        status: 'Confirmed', color: getCategoryColor(destination.category),
+      }]));
       setStep('confirm');
     }
   };
@@ -252,9 +206,9 @@ function BookingModal({ destination, onClose, navigate }) {
             </p>
             <div style={{ background: '#f8faff', borderRadius: 12, padding: '1rem', textAlign: 'left', marginBottom: '1.5rem' }}>
               {[
-                { label: ' Destination', value: `${destination.city}, ${destination.country}` },
-                { label: ' Check-in', value: form.checkIn },
-                { label: ' Check-out', value: form.checkOut },
+                { label: 'Destination', value: `${destination.city}, ${destination.country}` },
+                { label: 'Check-in', value: form.checkIn },
+                { label: 'Check-out', value: form.checkOut },
                 { label: ' Guests', value: form.guests },
               ].map(row => (
                 <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #eee' }}>
@@ -264,7 +218,7 @@ function BookingModal({ destination, onClose, navigate }) {
               ))}
             </div>
             <p style={{ color: '#aaa', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Confirmation sent to <strong>{form.email}</strong></p>
-            <div style={{ background: '#f0f4ff', borderRadius: 14, padding: '1.2rem', marginBottom: '0.8rem', border: '1.5px solid #dbeafe' }}>
+            <div style={{ background: '#f0f4ff', borderRadius: 14, padding: '1.2rem', border: '1.5px solid #dbeafe' }}>
               <div style={{ fontSize: '1.8rem', marginBottom: '0.4rem' }}></div>
               <p style={{ margin: '0 0 0.3rem', fontSize: '0.95rem', fontWeight: 700, color: '#1e3a5f' }}>Need a place to stay in {destination.city}?</p>
               <p style={{ margin: '0 0 1rem', fontSize: '0.83rem', color: '#666' }}>Browse properties and find your perfect accommodation.</p>
@@ -331,18 +285,33 @@ function BookingModal({ destination, onClose, navigate }) {
   );
 }
 
-// ── Destination Modal 
+// ── Destination Modal with photo 
 function Modal({ dest, onClose, onBook }) {
+  const [photo, setPhoto] = useState(null);
+  useEffect(() => {
+    if (dest) fetchCityPhoto(dest.city, dest.country).then(setPhoto);
+  }, [dest]);
+
   if (!dest) return null;
   const tags = dest.category ? dest.category.split(',') : [];
+
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, maxWidth: 520, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', overflow: 'hidden', animation: 'fadeIn 0.18s ease' }}>
-        <div style={{ background: getCategoryColor(dest.category), padding: '2rem 2rem 1.5rem', position: 'relative' }}>
-          <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: '1rem', color: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-          <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800, color: '#111' }}>{dest.city}</h2>
-          <p style={{ margin: '4px 0 0', fontSize: '1rem', color: '#444' }}> {dest.country}</p>
+        {/* Photo header */}
+        <div style={{ position: 'relative', height: 220 }}>
+          {photo
+            ? <img src={photo} alt={dest.city} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            : <div style={{ height: '100%', background: getCategoryColor(dest.category), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>🌍</div>
+          }
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)' }} />
+          <div style={{ position: 'absolute', bottom: '1.2rem', left: '1.8rem', color: '#fff' }}>
+            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>{dest.city}</h2>
+            <p style={{ margin: '4px 0 0', opacity: 0.9, fontSize: '1rem' }}>{dest.country}</p>
+          </div>
+          <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.35)', border: 'none', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
         </div>
+
         <div style={{ padding: '1.5rem 2rem 2rem' }}>
           <div style={{ background: '#f8faff', borderRadius: 10, padding: '0.9rem 1.1rem', marginBottom: '1.3rem', display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
             <span style={{ fontSize: '1.3rem' }}></span>
@@ -367,30 +336,61 @@ function Modal({ dest, onClose, onBook }) {
   );
 }
 
-// ── Destination Card 
+// ── Destination Card with photo 
 function DestinationCard({ dest, onClick }) {
-  const tags = dest.category ? dest.category.split(',').slice(0, 4) : [];
+  const [photo, setPhoto] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+  const tags = dest.category ? dest.category.split(',').slice(0, 3) : [];
+
+  useEffect(() => {
+    fetchCityPhoto(dest.city, dest.country).then(url => {
+      setPhoto(url);
+      setLoaded(true);
+    });
+  }, [dest.city, dest.country]);
+
   return (
-    <div onClick={() => onClick(dest)} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column', transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'pointer' }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.14)'; }}
+    <div onClick={() => onClick(dest)}
+      style={{ background: '#fff', borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(0,0,0,0.14)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'; }}
     >
-      <div style={{ height: 8, background: getCategoryColor(dest.category) }} />
-      <div style={{ padding: '1.1rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{dest.city}</h3>
-        <p style={{ margin: '2px 0 0', color: '#666', fontSize: '0.85rem' }}>{dest.country}</p>
-        <div style={{ marginTop: '0.7rem', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-          {tags.map((tag, i) => (
-            <span key={i} style={{ background: '#f0f4ff', color: '#3b5bdb', padding: '2px 9px', borderRadius: 20, fontSize: '0.73rem', fontWeight: 500 }}>{tag.trim()}</span>
-          ))}
-          {dest.category && dest.category.split(',').length > 4 && (
-            <span style={{ color: '#999', fontSize: '0.73rem', padding: '2px 4px' }}>+{dest.category.split(',').length - 4} more</span>
-          )}
-        </div>
-        <div style={{ marginTop: '0.8rem', fontSize: '0.8rem', color: '#555', borderTop: '1px solid #f0f0f0', paddingTop: '0.7rem' }}>
-          <strong>Best time:</strong> {dest.bestTimeToTravel || 'Year-round'}
+      {/* Photo */}
+      <div style={{ position: 'relative', height: 160, background: loaded && !photo ? getCategoryColor(dest.category) : '#e8eaf0', overflow: 'hidden' }}>
+        {!loaded && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: 28, height: 28, border: '3px solid #e0e0e0', borderTop: '3px solid #3b5bdb', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          </div>
+        )}
+        {photo && (
+          <img src={photo} alt={dest.city} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        )}
+        {loaded && !photo && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}></div>
+        )}
+        {/* Gradient overlay with city name */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)' }} />
+        <div style={{ position: 'absolute', bottom: '0.7rem', left: '0.9rem', color: '#fff' }}>
+          <p style={{ margin: 0, fontWeight: 800, fontSize: '1.05rem', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{dest.city}</p>
+          <p style={{ margin: '1px 0 0', fontSize: '0.78rem', opacity: 0.9 }}>{dest.country}</p>
         </div>
       </div>
+
+      {/* Tags + best time */}
+      <div style={{ padding: '0.8rem 1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: '0.6rem' }}>
+          {tags.map((tag, i) => (
+            <span key={i} style={{ background: '#f0f4ff', color: '#3b5bdb', padding: '2px 9px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 500 }}>{tag.trim()}</span>
+          ))}
+          {dest.category && dest.category.split(',').length > 3 && (
+            <span style={{ color: '#999', fontSize: '0.72rem', padding: '2px 4px' }}>+{dest.category.split(',').length - 3} more</span>
+          )}
+        </div>
+        <p style={{ margin: 0, fontSize: '0.78rem', color: '#666' }}>
+          <strong>Best time:</strong> {dest.bestTimeToTravel || 'Year-round'}
+        </p>
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
@@ -414,7 +414,7 @@ function Home() {
       const params = query ? `?search=${encodeURIComponent(query)}` : '';
       const { data } = await axios.get(`http://localhost:3001/api/destinations${params}`);
       setDestinations(data);
-    } catch (err) {
+    } catch {
       setError('Failed to load destinations. Is the server running?');
     } finally {
       setLoading(false);
@@ -460,18 +460,17 @@ function Home() {
         {error && <div style={{ background: '#fee', border: '1px solid #fcc', borderRadius: 8, padding: '1rem', marginBottom: '1.5rem', color: '#c00' }}>{error}</div>}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#888' }}>
-            <div style={{ fontSize: '2rem' }}>✈️</div>
+            <div style={{ fontSize: '2rem' }}></div>
             <p>Loading destinations...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: '#888' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}></div>
             <p style={{ fontWeight: 600, color: '#555' }}>No destinations match your filters</p>
-            <p style={{ fontSize: '0.88rem' }}>Try adjusting or clearing your filters</p>
             <button onClick={clearFilters} style={{ marginTop: '0.5rem', padding: '8px 20px', borderRadius: 8, border: 'none', background: '#1e3a5f', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Clear Filters</button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.2rem' }}>
             {filtered.map(dest => (
               <DestinationCard key={dest._id} dest={dest} onClick={setSelected} />
             ))}
